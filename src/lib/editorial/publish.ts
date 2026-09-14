@@ -40,7 +40,7 @@ export function publishDraftAsMdx(draft: Draft): string {
     title: draft.title,
     subtitle: draft.subtitle,
     excerpt: draft.excerpt,
-    authorSlug: "redaction",
+    authorSlug: draft.authorSlug,
     category: draft.category,
     tags: draft.tags,
     publishedAt: new Date().toISOString().slice(0, 10),

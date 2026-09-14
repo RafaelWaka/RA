@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getDrafts } from "@/lib/editorial/drafts";
+import { getAuthors } from "@/lib/authors";
 import { decideDraftAction, editDraftAction } from "../actions";
 
 export const metadata: Metadata = { title: "Brouillons à valider" };
@@ -8,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default function BrouillonsPage() {
   const drafts = getDrafts();
+  const authors = getAuthors();
   const ready = drafts.filter((d) => d.status === "ready");
   const other = drafts.filter((d) => d.status !== "ready");
 
@@ -61,6 +63,13 @@ export default function BrouillonsPage() {
                     Prompt image de couverture
                   </dt>
                   <dd>{draft.coverImagePrompt}</dd>
+                </div>
+                <div>
+                  <dt className="font-semibold text-ink-500">Signature</dt>
+                  <dd>
+                    {authors.find((a) => a.slug === draft.authorSlug)?.name ??
+                      draft.authorSlug}
+                  </dd>
                 </div>
               </dl>
 
@@ -116,6 +125,17 @@ export default function BrouillonsPage() {
                       className="w-full rounded border border-ink-200 px-2 py-1.5 text-sm"
                       placeholder="Sous-titre"
                     />
+                    <select
+                      name="authorSlug"
+                      defaultValue={draft.authorSlug}
+                      className="w-full rounded border border-ink-200 px-2 py-1.5 text-sm"
+                    >
+                      {authors.map((a) => (
+                        <option key={a.slug} value={a.slug}>
+                          {a.name}
+                        </option>
+                      ))}
+                    </select>
                     <input
                       name="seoTitle"
                       defaultValue={draft.seoTitle}

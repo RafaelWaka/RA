@@ -30,6 +30,7 @@ export type DraftStatus = "generating" | "ready" | "published" | "rejected";
 export type Draft = {
   id: string;
   ideaId: string;
+  authorSlug: string;
   title: string;
   subtitle: string;
   excerpt: string;

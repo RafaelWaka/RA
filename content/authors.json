@@ -1,26 +1,16 @@
 [
   {
-    "slug": "camille-fabre",
-    "name": "Camille Fabre",
-    "role": "Rédactrice en chef, Le Recruteur de Demain",
-    "bio": "Ex-recruteuse tech pendant 8 ans en cabinet puis en startup, Camille pilote la ligne éditoriale du Recruteur de Demain. Elle écrit sur le sourcing, les méthodes de recrutement et les données du secteur.",
-    "avatar": "/images/authors/camille-fabre.svg",
-    "linkedin": "https://www.linkedin.com/in/camille-fabre-recrutement"
+    "slug": "rafael-debucquet",
+    "name": "Rafael Debucquet",
+    "role": "Cofondateur, Le Recruteur de Demain",
+    "bio": "Rafael écrit pour Le Recruteur de Demain sur le sourcing, les méthodes de recrutement et les données du secteur.",
+    "avatar": "/images/authors/rafael-debucquet.svg"
   },
   {
-    "slug": "yanis-belhadj",
-    "name": "Yanis Belhadj",
-    "role": "Journaliste, IA & Outils",
-    "bio": "Yanis suit l'actualité des outils de recrutement et de l'IA appliquée au sourcing. Il teste les nouveaux outils et anime la rubrique Comparatifs.",
-    "avatar": "/images/authors/yanis-belhadj.svg",
-    "linkedin": "https://www.linkedin.com/in/yanis-belhadj"
-  },
-  {
-    "slug": "redaction",
-    "name": "La Rédaction",
-    "role": "Le Recruteur de Demain",
-    "bio": "Contenus produits par l'équipe éditoriale du Recruteur de Demain, à partir de sources vérifiées et citées dans l'article.",
-    "avatar": "/images/authors/redaction.svg",
-    "linkedin": "https://www.linkedin.com/company/le-recruteur-de-demain"
+    "slug": "damien-dussour",
+    "name": "Damien Dussour",
+    "role": "Cofondateur, Le Recruteur de Demain",
+    "bio": "Damien écrit pour Le Recruteur de Demain sur l'IA appliquée au recrutement, les outils et les comparatifs.",
+    "avatar": "/images/authors/damien-dussour.svg"
   }
 ]

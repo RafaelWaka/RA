@@ -94,6 +94,7 @@ export async function editDraftAction(formData: FormData) {
     seoTitle: String(formData.get("seoTitle") || ""),
     seoDescription: String(formData.get("seoDescription") || ""),
     content: String(formData.get("content") || ""),
+    authorSlug: String(formData.get("authorSlug") || ""),
   });
   revalidatePath("/admin/brouillons");
 }

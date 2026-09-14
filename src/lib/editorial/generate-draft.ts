@@ -34,6 +34,11 @@ import type { Draft, Idea } from "./types";
  * lier ou séparer une idée.
  */
 
+// Le Recruteur de Demain n'a que deux signatures possibles (voir
+// content/authors.json). Changez cette valeur, ou réassignez au cas par
+// cas dans /admin/brouillons, pour faire varier la signature par défaut.
+const DEFAULT_AUTHOR_SLUG = "damien-dussour";
+
 function slugify(title: string): string {
   return title
     .toLowerCase()
@@ -76,6 +81,9 @@ _[Rédaction : synthétiser en 3-4 points clés.]_
   return {
     id: randomId(),
     ideaId: idea.id,
+    // Les deux seules signatures possibles du média : à réassigner dans
+    // /admin/brouillons avant publication si besoin.
+    authorSlug: DEFAULT_AUTHOR_SLUG,
     title: idea.title,
     subtitle: idea.angle,
     excerpt: idea.why,
