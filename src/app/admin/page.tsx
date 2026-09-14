@@ -104,7 +104,7 @@ export default function AdminDashboardPage() {
         <p className="mb-4 max-w-2xl text-sm text-ink-500">
           Branchez Google Search Console et un outil d&apos;analytics
           (Plausible, GA4…) pour remplir ces indicateurs avec des données
-          réelles — voir <code className="rounded bg-ink-100 px-1">README.md</code>.
+          réelles. Voir <code className="rounded bg-ink-100 px-1">README.md</code>.
         </p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <MetricPlaceholder label="Vues (30j)" />
@@ -201,7 +201,7 @@ function MetricPlaceholder({ label }: { label: string }) {
       <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">
         {label}
       </p>
-      <p className="mt-2 text-lg font-semibold text-ink-300">—</p>
+      <p className="mt-2 text-lg font-semibold text-ink-300">N/A</p>
     </div>
   );
 }

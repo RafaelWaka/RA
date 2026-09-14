@@ -27,6 +27,11 @@ import type { Draft, Idea } from "./types";
  * 4. Remplacer le corps de `generateDraft()` ci-dessous, en gardant la même
  *    signature (Idea) => Draft, pour que /admin/brouillons continue de
  *    fonctionner sans autre changement.
+ *
+ * Charte de style éditoriale (à inclure dans le system prompt du modèle) :
+ * jamais de tiret cadratin/demi-cadratin ("—", "–") dans le texte rédigé,
+ * ça sonne artificiel. Utiliser un point, une virgule ou deux-points pour
+ * lier ou séparer une idée.
  */
 
 function slugify(title: string): string {
@@ -60,7 +65,7 @@ _[Rédaction : pour chaque fait chiffré, ajouter la source correspondante dans 
 ## Analyse
 
 <Callout type="analyse">
-_[Rédaction : ajouter ici l'analyse éditoriale — ce que ces éléments signifient concrètement pour un recruteur.]_
+_[Rédaction : ajouter ici l'analyse éditoriale, ce que ces éléments signifient concrètement pour un recruteur.]_
 </Callout>
 
 ## Ce qu'il faut retenir

@@ -81,7 +81,7 @@ export default async function InterviewPage({
               {personName}
             </p>
             <p className="text-sm text-ink-600">
-              {personRole} — {personCompany}
+              {personRole} · {personCompany}
             </p>
             {personLinkedin && (
               <a
