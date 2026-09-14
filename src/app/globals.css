@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: theme("colors.ink.900");
+  background-color: theme("colors.ink.50");
+}
+
+.prose :where(h2):not(:where([class~="not-prose"] *)) {
+  scroll-margin-top: 6rem;
+}
+.prose :where(h3):not(:where([class~="not-prose"] *)) {
+  scroll-margin-top: 6rem;
+}
+
+.prose a.heading-anchor {
+  text-decoration: none;
+}
