@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readCollection, writeCollection } from "@/lib/editorial/store";
+import { addContactMessage } from "@/lib/contact";
 
-type ContactMessage = {
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-  createdAt: string;
-};
-
-const FILE = "contact-messages.json";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request: NextRequest) {
@@ -23,9 +14,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Champs invalides." }, { status: 400 });
   }
 
-  const messages = readCollection<ContactMessage>(FILE);
-  messages.push({ name, email, subject, message, createdAt: new Date().toISOString() });
-  writeCollection(FILE, messages);
+  await addContactMessage({ name, email, subject, message });
 
   // Extension possible : envoyer un email de notification (Resend, etc.)
   return NextResponse.json({ ok: true });

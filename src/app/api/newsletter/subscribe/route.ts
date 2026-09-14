@@ -12,6 +12,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Email invalide." }, { status: 400 });
   }
 
-  subscribe(email, source);
+  await subscribe(email, source);
   return NextResponse.json({ ok: true });
 }

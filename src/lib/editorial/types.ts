@@ -45,4 +45,5 @@ export type Draft = {
   status: DraftStatus;
   createdAt: string;
   publishedAt?: string;
+  publishError?: string;
 };

@@ -15,10 +15,42 @@ validation → publication), SEO technique complet, prêt pour Vercel.
 - Contenu en **MDX** (fichiers dans `content/`), lu au build/à la demande —
   pas de CMS externe requis pour démarrer, mais l'architecture est prête à
   en accueillir un (voir plus bas)
-- Store JSON fichier pour le workflow éditorial (`data/`) — à remplacer par
-  une vraie base de données avant une mise en production sérieuse (voir
-  plus bas)
+- Store Redis (Upstash, via l'intégration Vercel Marketplace) pour le
+  workflow éditorial et les formulaires publics, avec repli automatique
+  sur un fichier JSON local (`data/`) en développement — voir
+  « Configuration requise en production » ci-dessous
+- Publication : commit direct dans `content/articles/` via l'API GitHub en
+  production (déclenche le redéploiement Vercel), écriture fichier locale
+  en développement
 - Déploiement cible : **Vercel** (plan gratuit compatible)
+
+## Configuration requise en production
+
+Le site fonctionne en lecture dès le déploiement, mais **le dashboard
+admin (`/admin`) a besoin de deux variables d'environnement pour
+fonctionner sur Vercel**, sans quoi les actions qui écrivent des données
+(lancer la recherche, valider une idée, publier un brouillon) échouent :
+le système de fichiers des fonctions serverless Vercel est en lecture
+seule.
+
+1. **Store du workflow (Redis)** — dans le dashboard Vercel du projet,
+   onglet **Storage** → **Add** → intégration **Upstash for Redis**
+   (Marketplace, gratuit pour ce volume d'usage). Vercel injecte
+   automatiquement `KV_REST_API_URL` et `KV_REST_API_TOKEN` : aucune autre
+   configuration nécessaire. Sans cette variable, `/admin` affiche un
+   message d'erreur clair (au lieu de planter) tant qu'elle n'est pas
+   configurée.
+2. **Publication des articles (GitHub)** — créez un [Personal Access
+   Token fine-grained](https://github.com/settings/personal-access-tokens/new)
+   limité à ce dépôt, avec la permission **Contents: Read and write**.
+   Ajoutez-le dans les variables d'environnement Vercel sous le nom
+   `PUBLISH_GITHUB_TOKEN` (voir `.env.example`). Sans lui, le bouton
+   « Publier » d'un brouillon échoue avec un message d'erreur explicite
+   dans `/admin/brouillons`, sans rien casser ailleurs.
+
+Après avoir ajouté ces variables, redéployez le projet (Vercel le
+propose automatiquement après un changement de variable
+d'environnement).
 
 ## Démarrer en local
 
@@ -85,9 +117,11 @@ Recherche → Idées → [Validation humaine] → Rédaction → [Validation hum
    compléter par la rédaction, pas des affirmations fabriquées.
 4. **Validation du brouillon** (`/admin/brouillons`) — **Publier**,
    **Modifier**, **Régénérer** ou **Rejeter**. Publier écrit un vrai
-   fichier `.mdx` dans `content/articles/` : l'article apparaît
-   immédiatement sur le site, dans le sitemap, avec toutes les métadonnées
-   SEO.
+   fichier `.mdx` dans `content/articles/` avec toutes les métadonnées
+   SEO : en local directement sur disque (visible immédiatement), en
+   production via un commit sur le dépôt GitHub (voir « Configuration
+   requise en production »), qui déclenche le redéploiement Vercel et
+   rend l'article visible après le build suivant (une à deux minutes).
 
 ### Brancher la vraie automatisation (recherche web + IA)
 
@@ -119,12 +153,19 @@ Aucune autre partie du code n'a besoin de changer : les deux fonctions
 
 12 contenus d'exemple sont fournis (6 articles, 2 études, 2 comparatifs, 2
 interviews) pour démontrer chaque gabarit (mise en page, SEO, maillage
-interne, tableaux, citations…). Ils sont marqués `seed: true` dans leur
-frontmatter et affichent un bandeau « Contenu d'exemple ». **Remplacez-les
-progressivement par du contenu réel** produit via le workflow `/admin` (ou
-rédigé manuellement) avant toute mise en production publique — en
-particulier les études (gabarits d'enquêtes non encore menées) et les
-comparatifs (prix marqués « À vérifier » plutôt qu'inventés).
+interne, tableaux, citations…). Deux niveaux :
+
+- **5 articles** sont des contenus éditoriaux complets (analyse générale du
+  métier, sans donnée chiffrée ou citation inventée) : publiables tels
+  quels, mais gagnent à être enrichis avec des chiffres et témoignages
+  réels au fil du temps.
+- **7 contenus restent marqués `frontmatter.seed: true`** (1 article, les
+  2 études, les 2 comparatifs, les 2 interviews) et affichent un bandeau
+  « Contenu d'exemple » : les études n'ont pas encore de données
+  collectées, les comparatifs ont des prix marqués « À vérifier » plutôt
+  qu'inventés, et les interviews sont des personnages fictifs (voir
+  l'encart dans chaque article). **Ne retirez `seed: true` qu'une fois le
+  contenu réellement vérifié et sourcé.**
 
 ## SEO technique — ce qui est déjà en place
 
@@ -171,21 +212,18 @@ quand le besoin se présente :
 
 | Besoin | Où intervenir |
 | --- | --- |
-| Base de données réelle | `src/lib/editorial/store.ts` — remplacer les fonctions `readCollection`/`writeCollection` par des appels à Postgres/Supabase/Neon, en gardant la même signature |
+| Base de données relationnelle (au-delà de Redis) | `src/lib/editorial/store.ts` — remplacer `readCollection`/`writeCollection` par des appels à Postgres/Supabase/Neon, en gardant la même signature |
 | Vraie recherche web + IA | `src/lib/editorial/generate-ideas.ts` et `generate-draft.ts` (voir commentaires dans chaque fichier) |
 | CMS headless (si la rédaction préfère une interface dédiée plutôt que des fichiers MDX) | Remplacer les lecteurs de `src/lib/content.ts` par des appels à l'API du CMS choisi (Sanity, Contentful, Payload…), en gardant les mêmes types (`ContentEntry`) |
-| Emailing newsletter | `src/lib/newsletter.ts` — remplacer `subscribe()` par un appel à l'API du prestataire choisi (Resend, Brevo, Mailchimp…) |
+| Emailing newsletter | `src/lib/newsletter.ts` — appeler l'API du prestataire choisi (Resend, Brevo, Mailchimp…) en plus du `subscribe()` actuel |
 | Génération d'images de couverture | Le brouillon propose déjà un `coverImagePrompt` (voir `/admin/brouillons`) — brancher une API de génération d'images et stocker le résultat dans `content/<type>/images/` |
 | Comptes utilisateurs / abonnement premium | Ajouter un provider d'auth (NextAuth, Clerk...) et un contrôle d'accès sur les pages concernées ; l'auth admin actuelle (`src/middleware.ts`) est volontairement minimaliste (mot de passe unique) et devra être remplacée en premier |
-| Publication effective en production sur Vercel | `src/lib/editorial/publish.ts` écrit un fichier localement, ce qui ne persiste pas de façon fiable sur le filesystem éphémère des fonctions serverless Vercel — brancher un commit Git via l'API GitHub, ou migrer vers la base de données / CMS choisi |
 
-## Limite connue : le store fichier en production Vercel
+## Robustesse du dashboard admin
 
-Le workflow éditorial (`data/*.json`) et les formulaires publics
-(newsletter, contact) utilisent un store JSON fichier pour rester simple
-au démarrage (section « commencer gratuitement » du brief). **Ce store
-fonctionne parfaitement en local**, mais le système de fichiers des
-fonctions serverless Vercel est éphémère : ne comptez pas dessus pour un
-usage en production réelle sans l'avoir remplacé par une vraie base de
-données (voir tableau ci-dessus). C'est un choix assumé pour livrer un
-MVP fonctionnel immédiatement testable, pas un oubli.
+Toute lecture ou écriture du store (Redis/GitHub) est capturée : une
+panne de configuration ou d'API externe affiche un message d'erreur
+lisible directement dans `/admin` (avec le détail technique, cette page
+n'étant accessible qu'à l'administrateur) plutôt que l'écran générique
+« Application error » de Next.js. Voir `src/lib/editorial/safe.ts` et
+`src/components/admin/error-banner.tsx`.

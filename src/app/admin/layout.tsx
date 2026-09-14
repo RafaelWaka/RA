@@ -12,6 +12,8 @@ const NAV = [
   { href: "/admin/idees", label: "Idées à valider" },
   { href: "/admin/brouillons", label: "Brouillons à valider" },
   { href: "/admin/articles", label: "Publiés" },
+  { href: "/admin/newsletter", label: "Newsletter" },
+  { href: "/admin/contact", label: "Contact" },
 ];
 
 export default function AdminLayout({

@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   }
 
   const ideas = generateIdeas(5);
-  addIdeas(ideas);
+  await addIdeas(ideas);
   revalidatePath("/admin");
   revalidatePath("/admin/idees");
 

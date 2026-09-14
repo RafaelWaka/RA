@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { getIdeas } from "@/lib/editorial/ideas";
+import { safeLoad } from "@/lib/editorial/safe";
 import { categories } from "@/lib/categories";
+import { AdminErrorBanner } from "@/components/admin/error-banner";
 import { decideIdeaAction, editIdeaAction } from "../actions";
 
 export const metadata: Metadata = { title: "Idées à valider" };
@@ -16,8 +18,8 @@ const FORMAT_LABEL: Record<string, string> = {
   analyse: "Analyse",
 };
 
-export default function IdeesPage() {
-  const ideas = getIdeas();
+export default async function IdeesPage() {
+  const { data: ideas, error } = await safeLoad(() => getIdeas(), []);
   const pending = ideas.filter((i) => i.status === "pending");
   const decided = ideas.filter((i) => i.status !== "pending");
 
@@ -30,6 +32,8 @@ export default function IdeesPage() {
         Rien n&apos;est rédigé sans votre validation. Chaque idée peut être
         validée telle quelle, modifiée, ou refusée.
       </p>
+
+      {error && <div className="mt-4"><AdminErrorBanner message={error} /></div>}
 
       {pending.length === 0 ? (
         <p className="mt-8 rounded-lg border border-dashed border-ink-200 bg-white p-6 text-sm text-ink-500">

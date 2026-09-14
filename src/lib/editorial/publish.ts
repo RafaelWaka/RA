@@ -2,6 +2,7 @@ import "server-only";
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
+import { commitFile, isGithubConfigured } from "../github";
 import type { Draft } from "./types";
 
 const ARTICLES_DIR = path.join(process.cwd(), "content", "articles");
@@ -15,27 +16,12 @@ const COVER_POOL = [
 
 function pickCover(seed: string): string {
   const index =
-    Math.abs(
-      seed.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0)
-    ) % COVER_POOL.length;
+    Math.abs(seed.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0)) %
+    COVER_POOL.length;
   return COVER_POOL[index];
 }
 
-/**
- * Publication effective d'un brouillon validé : écrit un fichier .mdx dans
- * content/articles/ avec toutes les métadonnées SEO nécessaires (voir
- * src/lib/types.ts pour le schéma de frontmatter attendu par le site).
- *
- * Limite connue (voir src/lib/editorial/store.ts) : sur Vercel, le système
- * de fichiers des fonctions serverless est éphémère. Cette fonction est
- * idéale en local ou avec un filesystem persistant (self-host, Docker).
- * En production Vercel, remplacez-la par un commit Git (API GitHub) ou un
- * appel à un headless CMS / une base de données servant les pages.
- */
-export function publishDraftAsMdx(draft: Draft): string {
-  fs.mkdirSync(ARTICLES_DIR, { recursive: true });
-  const filePath = path.join(ARTICLES_DIR, `${draft.slug}.mdx`);
-
+function buildMdxFile(draft: Draft): string {
   const frontmatter = {
     title: draft.title,
     subtitle: draft.subtitle,
@@ -51,8 +37,30 @@ export function publishDraftAsMdx(draft: Draft): string {
     seoDescription: draft.seoDescription,
     sources: draft.sources.filter((s) => s.url),
   };
+  return matter.stringify(draft.content, frontmatter);
+}
 
-  const file = matter.stringify(draft.content, frontmatter);
-  fs.writeFileSync(filePath, file, "utf-8");
+/**
+ * Publication effective d'un brouillon validé.
+ *
+ * En production (GITHUB_TOKEN configuré) : commit le fichier .mdx sur le
+ * dépôt GitHub via l'API Contents (voir src/lib/github.ts). Le push
+ * déclenche le redéploiement Vercel habituel ; l'article devient visible
+ * sur le site après le build suivant.
+ *
+ * En développement local (pas de GITHUB_TOKEN) : écrit directement le
+ * fichier dans content/articles/, visible immédiatement.
+ */
+export async function publishDraft(draft: Draft): Promise<string> {
+  const relativePath = `content/articles/${draft.slug}.mdx`;
+  const file = buildMdxFile(draft);
+
+  if (isGithubConfigured()) {
+    await commitFile(relativePath, file, `Publier : ${draft.title}`);
+  } else {
+    fs.mkdirSync(ARTICLES_DIR, { recursive: true });
+    fs.writeFileSync(path.join(ARTICLES_DIR, `${draft.slug}.mdx`), file, "utf-8");
+  }
+
   return `/articles/${draft.slug}`;
 }

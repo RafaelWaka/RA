@@ -1,16 +1,22 @@
 import Link from "next/link";
 import { getIdeas } from "@/lib/editorial/ideas";
 import { getDrafts } from "@/lib/editorial/drafts";
+import { getSubscribers } from "@/lib/newsletter";
 import { getAllArticles } from "@/lib/content";
-import { runResearchAction } from "./actions";
+import { safeLoad } from "@/lib/editorial/safe";
+import { getSystemError } from "@/lib/editorial/system-status";
+import { AdminErrorBanner } from "@/components/admin/error-banner";
+import { dismissSystemErrorAction, runResearchAction } from "./actions";
 
-// Dashboard interne lisant un store fichier mutable (cron, actions admin) :
+// Dashboard interne lisant un store mutable (cron, actions admin) :
 // toujours rendu à la demande, jamais mis en cache statiquement.
 export const dynamic = "force-dynamic";
 
-export default function AdminDashboardPage() {
-  const ideas = getIdeas();
-  const drafts = getDrafts();
+export default async function AdminDashboardPage() {
+  const { data: ideas, error: ideasError } = await safeLoad(() => getIdeas(), []);
+  const { data: drafts, error: draftsError } = await safeLoad(() => getDrafts(), []);
+  const { data: subscribers } = await safeLoad(() => getSubscribers(), []);
+  const systemError = await getSystemError().catch(() => null);
   const articles = getAllArticles();
 
   const pendingIdeas = ideas.filter((i) => i.status === "pending");
@@ -37,6 +43,27 @@ export default function AdminDashboardPage() {
           </button>
         </form>
       </div>
+
+      {systemError && (
+        <div className="mt-4 flex items-start justify-between gap-3 rounded-lg border border-clay-500/40 bg-orange-50 p-4 text-sm text-clay-600">
+          <div>
+            <p className="font-semibold">La dernière action a échoué</p>
+            <p className="mt-1 whitespace-pre-wrap font-mono text-xs text-clay-600/90">
+              {systemError.message}
+            </p>
+          </div>
+          <form action={dismissSystemErrorAction}>
+            <button className="whitespace-nowrap text-xs font-medium underline">
+              Masquer
+            </button>
+          </form>
+        </div>
+      )}
+      {(ideasError || draftsError) && (
+        <div className="mt-4">
+          <AdminErrorBanner message={(ideasError || draftsError)!} />
+        </div>
+      )}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
@@ -108,7 +135,11 @@ export default function AdminDashboardPage() {
         </p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <MetricPlaceholder label="Vues (30j)" />
-          <MetricPlaceholder label="Inscrits newsletter" />
+          <SummaryLink
+            label="Inscrits newsletter"
+            count={subscribers.length}
+            href="/admin/newsletter"
+          />
           <MetricPlaceholder label="Top article" />
           <MetricPlaceholder label="Trafic organique" />
         </div>

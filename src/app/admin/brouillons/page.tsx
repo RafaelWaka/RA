@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getDrafts } from "@/lib/editorial/drafts";
+import { safeLoad } from "@/lib/editorial/safe";
 import { getAuthors } from "@/lib/authors";
+import { AdminErrorBanner } from "@/components/admin/error-banner";
 import { decideDraftAction, editDraftAction } from "../actions";
 
 export const metadata: Metadata = { title: "Brouillons à valider" };
 export const dynamic = "force-dynamic";
 
-export default function BrouillonsPage() {
-  const drafts = getDrafts();
+export default async function BrouillonsPage() {
+  const { data: drafts, error } = await safeLoad(() => getDrafts(), []);
   const authors = getAuthors();
   const ready = drafts.filter((d) => d.status === "ready");
   const other = drafts.filter((d) => d.status !== "ready");
@@ -21,6 +23,8 @@ export default function BrouillonsPage() {
       <p className="mt-1 text-sm text-ink-500">
         Aucun article n&apos;est publié sans validation explicite.
       </p>
+
+      {error && <div className="mt-4"><AdminErrorBanner message={error} /></div>}
 
       {ready.length === 0 ? (
         <p className="mt-8 rounded-lg border border-dashed border-ink-200 bg-white p-6 text-sm text-ink-500">
@@ -44,6 +48,17 @@ export default function BrouillonsPage() {
                 {draft.title}
               </h2>
               <p className="mt-1 text-sm text-ink-700">{draft.subtitle}</p>
+
+              {draft.publishError && (
+                <div className="mt-3 rounded-md border border-clay-500/40 bg-orange-50 p-3 text-xs text-clay-600">
+                  <p className="font-semibold">
+                    Échec de la dernière tentative de publication
+                  </p>
+                  <p className="mt-1 whitespace-pre-wrap font-mono">
+                    {draft.publishError}
+                  </p>
+                </div>
+              )}
 
               <dl className="mt-3 grid gap-2 text-xs text-ink-600 sm:grid-cols-2">
                 <div>
